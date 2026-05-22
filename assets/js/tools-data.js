@@ -1,0 +1,28 @@
+window.TOOLS = [
+  { slug: 'pdf-merge', name: 'PDF Merge', desc: 'Combine multiple PDF files into a single document, keeping the original quality.', category: 'PDF', icon: 'merge', tags: ['combine', 'join', 'pdf'] },
+  { slug: 'pdf-split', name: 'PDF Split', desc: 'Extract specific pages or split a PDF into separate documents by page range.', category: 'PDF', icon: 'split', tags: ['extract', 'pages', 'pdf'] },
+  { slug: 'pdf-compress', name: 'PDF Compress', desc: 'Reduce PDF file size by removing metadata and unused resources — in your browser.', category: 'PDF', icon: 'compress', tags: ['shrink', 'reduce', 'pdf'] },
+  { slug: 'pdf-to-image', name: 'PDF to Image', desc: 'Convert every PDF page into a high-resolution PNG or JPG image.', category: 'PDF', icon: 'image', tags: ['convert', 'png', 'jpg'] },
+  { slug: 'image-to-pdf', name: 'Image to PDF', desc: 'Turn a batch of JPG, PNG, or WebP images into a clean, single PDF file.', category: 'PDF', icon: 'pdf', tags: ['convert', 'photos', 'scan'] },
+  { slug: 'image-resize', name: 'Image Resize', desc: 'Resize images to exact dimensions or scale by percentage without losing quality.', category: 'Image', icon: 'resize', tags: ['dimensions', 'scale', 'crop'] },
+  { slug: 'image-compress', name: 'Image Compress', desc: 'Shrink JPG, PNG, and WebP files with adjustable quality for faster web loads.', category: 'Image', icon: 'compress', tags: ['optimize', 'reduce', 'web'] },
+  { slug: 'image-convert', name: 'Image Convert', desc: 'Convert between PNG, JPG, and WebP formats instantly — no upload required.', category: 'Image', icon: 'convert', tags: ['format', 'webp', 'jpg'] },
+  { slug: 'word-counter', name: 'Word Counter', desc: 'Count words, characters, sentences and read time as you type or paste.', category: 'Text', icon: 'text', tags: ['writing', 'seo', 'count'] },
+  { slug: 'case-converter', name: 'Case Converter', desc: 'Switch text between UPPERCASE, lowercase, Title Case, camelCase and more.', category: 'Text', icon: 'case', tags: ['text', 'format'] },
+  { slug: 'qr-code-generator', name: 'QR Code Generator', desc: 'Generate downloadable QR codes for links, text, Wi-Fi, and contact cards.', category: 'Utility', icon: 'qr', tags: ['qr', 'barcode', 'share'] },
+  { slug: 'meta-tag-generator', name: 'Meta Tag Generator', desc: 'Build SEO and Open Graph meta tags in seconds with a live preview.', category: 'SEO', icon: 'seo', tags: ['seo', 'og', 'twitter'] },
+];
+
+window.TOOL_ICONS = {
+  merge: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M7 3v5l-4 4 4 4v5\"/><path d=\"M17 3v5l4 4-4 4v5\"/><path d=\"M3 12h18\"/></svg>',
+  split: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 3v18\"/><path d=\"M5 8l-2 4 2 4\"/><path d=\"M19 8l2 4-2 4\"/></svg>',
+  compress: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 9V5h4\"/><path d=\"M20 9V5h-4\"/><path d=\"M4 15v4h4\"/><path d=\"M20 15v4h-4\"/><rect x=\"9\" y=\"9\" width=\"6\" height=\"6\" rx=\"1\"/></svg>',
+  image: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-5-5L5 21\"/></svg>',
+  pdf: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M9 13h6M9 17h4\"/></svg>',
+  resize: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 3h-6\"/><path d=\"M21 3v6\"/><path d=\"M21 3l-7 7\"/><path d=\"M3 21h6\"/><path d=\"M3 21v-6\"/><path d=\"M3 21l7-7\"/></svg>',
+  convert: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7h13l-3-3\"/><path d=\"M21 17H8l3 3\"/></svg>',
+  text: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h16M4 12h16M4 18h10\"/></svg>',
+  case: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 19V8l4 11\"/><path d=\"M3 14h4\"/><path d=\"M14 19v-7a3 3 0 0 1 6 0v7\"/><path d=\"M14 15h6\"/></svg>',
+  qr: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\"/><path d=\"M14 14h3v3h-3zM20 14v3M14 20h3M17 17h4v4\"/></svg>',
+  seo: '<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/><path d=\"M8 11h6M11 8v6\"/></svg>',
+};
