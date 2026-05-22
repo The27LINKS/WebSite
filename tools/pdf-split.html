@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF Split — Extract pages from PDF | The 27 Links</title>
+  <meta name="description" content="Split a PDF into separate files or extract a specific page range. Fast, private, entirely in-browser." />
+  <link rel="canonical" href="https://the27links.in/tools/pdf-split.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="pdf-split-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <h1>PDF Split</h1>
+      <p>Extract specific pages or a page range from a PDF into a new file.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload a PDF</h2>
+          <p class="hint">Page numbers start at 1. Use ranges like <code>1-3, 5, 7-9</code>.</p>
+          
+          <label class="dropzone" id="dropzone" data-testid="pdf-split-dropzone">
+            <strong>Drag &amp; drop a PDF here</strong>
+            <span>or click to choose · single file</span>
+            <input type="file" accept="application/pdf" />
+          </label>
+          <div class="file-list" id="file-list"></div>
+
+          <div class="form-row" style="margin-top: 20px;">
+            <label>Mode</label>
+            <select id="mode" data-testid="pdf-split-mode">
+              <option value="range">Extract specific pages / ranges</option>
+              <option value="each">Split every page into its own file</option>
+            </select>
+          </div>
+          
+          <div class="form-row" id="range-row">
+            <label for="range-input">Pages</label>
+            <input type="text" id="range-input" placeholder="e.g. 1-3, 5, 7-9" data-testid="pdf-split-range" />
+            <div class="help">Leave empty to export all pages into one file (no-op).</div>
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="run-btn" disabled data-testid="pdf-split-run">Split &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn">Reset</button>
+          </div>
+          
+          <div class="result-box" id="result" data-testid="pdf-split-result"></div>
+        </div>
+        
+        <aside class="tool-sidebar">
+          <a href="https://the27links.in" el="noopener noreferrer" class="ad-slot active-ad" data-testid="ad-slot">
+            <img src="../assets/gif/Animation.gif" alt="Advertisement" />
+         </a>
+          <div class="sidebar-card">
+            <h4>Tips</h4>
+            <p>"Split every page" produces a series of downloads — ensure your browser allows multiple downloads from this site.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="pdf-merge.html">PDF Merge</a></li>
+              <li><a href="pdf-compress.html">PDF Compress</a></li>
+            </ul>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  
+  <script>
+    (function () {
+      const { PDFDocument } = PDFLib;
+      let file = null;
+      
+      const dz = document.getElementById('dropzone');
+      const listEl = document.getElementById('file-list');
+      const modeSel = document.getElementById('mode');
+      const rangeRow = document.getElementById('range-row');
+      const rangeInput = document.getElementById('range-input');
+      const runBtn = document.getElementById('run-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const result = document.getElementById('result');
+
+      function render() {
+        if (!file) { 
+          listEl.innerHTML = ''; 
+          runBtn.disabled = true; 
+          return; 
+        }
+        listEl.innerHTML = `
+          <div class="file-item">
+            <span class="fi-name">${file.name}</span>
+            <span class="fi-size">${window.fmtBytes(file.size)}</span>
+            <button type="button" data-remove>✕</button>
+          </div>
+        `;
+        listEl.querySelector('[data-remove]').addEventListener('click', () => { 
+          file = null; 
+          render(); 
+        });
+        runBtn.disabled = false;
+      }
+
+      window.makeDropzone(dz, (fs) => { 
+        file = fs[0]; 
+        render(); 
+      }, { accept: 'application/pdf', multiple: false });
+
+      modeSel.addEventListener('change', () => {
+        rangeRow.style.display = modeSel.value === 'range' ? '' : 'none';
+      });
+
+      clearBtn.addEventListener('click', () => { 
+        file = null; 
+        rangeInput.value = ''; 
+        render(); 
+        result.classList.remove('show'); 
+      });
+
+      function parseRanges(str, total) {
+        const out = new Set();
+        str.split(',').map(s => s.trim()).filter(Boolean).forEach(part => {
+          const m = part.match(/^(\d+)(?:-(\d+))?$/);
+          if (!m) throw new Error('Invalid range: ' + part);
+          const a = +m[1], b = m[2] ? +m[2] : a;
+          for (let i = Math.min(a, b); i <= Math.max(a, b); i++) {
+            if (i < 1 || i > total) throw new Error(`Page ${i} is out of range (1..${total})`);
+            out.add(i - 1);
+          }
+        });
+        return Array.from(out).sort((a, b) => a - b);
+      }
+
+      runBtn.addEventListener('click', async () => {
+        if (!file) return;
+        runBtn.disabled = true;
+        result.classList.remove('show', 'error');
+        
+        try {
+          const buf = await file.arrayBuffer();
+          const src = await PDFDocument.load(buf, { ignoreEncryption: true });
+          const total = src.getPageCount();
+          const base = file.name.replace(/\.pdf$/i, '');
+          const mode = modeSel.value;
+          
+          if (mode === 'range') {
+            const pages = parseRanges(rangeInput.value || `1-${total}`, total);
+            const out = await PDFDocument.create();
+            const copied = await out.copyPages(src, pages);
+            copied.forEach(p => out.addPage(p));
+            const bytes = await out.save();
+            
+            window.download(new Blob([bytes], { type: 'application/pdf' }), `${base}-extracted.pdf`, 'application/pdf');
+            
+            result.classList.add('show');
+            result.innerHTML = `<strong>Done.</strong> Exported ${pages.length} page(s) from ${total}.`;
+          } else {
+            for (let i = 0; i < total; i++) {
+              const out = await PDFDocument.create();
+              const [p] = await out.copyPages(src, [i]);
+              out.addPage(p);
+              const bytes = await out.save();
+              
+              window.download(new Blob([bytes], { type: 'application/pdf' }), `${base}-page-${i + 1}.pdf`, 'application/pdf');
+              // Buffer to prevent browser download blocking
+              await new Promise(r => setTimeout(r, 150));
+            }
+            result.classList.add('show');
+            result.innerHTML = `<strong>Done.</strong> Exported ${total} separate files.`;
+          }
+          window.toast('Split complete');
+        } catch (e) {
+          result.classList.add('show', 'error');
+          result.textContent = 'Failed: ' + (e.message || e);
+        } finally { 
+          runBtn.disabled = false; 
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

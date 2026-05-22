@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF to Image — Convert PDF pages to PNG or JPG | The 27 Links</title>
+  <meta name="description" content="Convert each page of a PDF into a high-quality PNG or JPG image — privately in your browser." />
+  <link rel="canonical" href="https://the27links.in/tools/pdf-to-image.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="pdf-to-image-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> / <a href="../tools.html">Tools</a> / PDF to Image
+      </div>
+      <h1>PDF to Image</h1>
+      <p>Render each PDF page as a PNG or JPG at the resolution you choose.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload a PDF</h2>
+          <p class="hint">Pages are rendered in your browser using PDF.js. Each page downloads as a separate image.</p>
+          
+          <label class="dropzone" id="dropzone" data-testid="pdf-to-image-dropzone">
+            <strong>Drag &amp; drop a PDF</strong>
+            <span>or click to select</span>
+            <input type="file" accept="application/pdf" />
+          </label>
+          <div class="file-list" id="file-list"></div>
+
+          <div class="form-row-2" style="margin-top: 18px;">
+            <div class="form-row">
+              <label>Format</label>
+              <select id="format" data-testid="pdf-to-image-format">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPG</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Scale (quality)</label>
+              <select id="scale">
+                <option value="1">1× (fast)</option>
+                <option value="2" selected>2× (recommended)</option>
+                <option value="3">3× (print)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="run-btn" disabled data-testid="pdf-to-image-run">Convert &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn">Reset</button>
+          </div>
+          
+          <div class="result-box" id="result" data-testid="pdf-to-image-result"></div>
+          
+          <div id="preview-area" style="margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px,1fr)); gap: 10px;"></div>
+        </div>
+        
+        <aside class="tool-sidebar">
+          <div class="ad-slot">Advertisement<br/>300 × 600</div>
+          <div class="sidebar-card">
+            <h4>Tips</h4>
+            <p>For pixel-perfect receipts or screenshots, use 2× scale. For archival print, use 3×.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="image-to-pdf.html">Image to PDF</a></li>
+              <li><a href="image-compress.html">Image Compress</a></li>
+            </ul>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  
+  <script>
+    (function () {
+      // Configure PDF.js worker
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      
+      let file = null;
+      const dz = document.getElementById('dropzone');
+      const listEl = document.getElementById('file-list');
+      const runBtn = document.getElementById('run-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const result = document.getElementById('result');
+      const fmtSel = document.getElementById('format');
+      const scaleSel = document.getElementById('scale');
+      const preview = document.getElementById('preview-area');
+
+      function renderList() {
+        if (!file) { 
+          listEl.innerHTML = ''; 
+          runBtn.disabled = true; 
+          return; 
+        }
+        listEl.innerHTML = `
+          <div class="file-item">
+            <span class="fi-name">${file.name}</span>
+            <span class="fi-size">${window.fmtBytes(file.size)}</span>
+            <button data-remove>✕</button>
+          </div>
+        `;
+        listEl.querySelector('[data-remove]').addEventListener('click', () => { 
+          file = null; 
+          renderList(); 
+          preview.innerHTML = ''; 
+        });
+        runBtn.disabled = false;
+      }
+
+      window.makeDropzone(dz, fs => { 
+        file = fs[0]; 
+        renderList(); 
+      }, { accept: 'application/pdf', multiple: false });
+
+      clearBtn.addEventListener('click', () => { 
+        file = null; 
+        renderList(); 
+        result.classList.remove('show'); 
+        preview.innerHTML = ''; 
+      });
+
+      runBtn.addEventListener('click', async () => {
+        if (!file) return;
+        
+        runBtn.disabled = true; 
+        result.classList.remove('show', 'error'); 
+        preview.innerHTML = '';
+        
+        try {
+          const fmt = fmtSel.value === 'jpeg' ? 'image/jpeg' : 'image/png';
+          const ext = fmtSel.value === 'jpeg' ? 'jpg' : 'png';
+          const scale = parseFloat(scaleSel.value);
+          
+          const buf = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+          const base = file.name.replace(/\.pdf$/i, '');
+          
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const vp = page.getViewport({ scale });
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = vp.width; 
+            canvas.height = vp.height;
+            const ctx = canvas.getContext('2d');
+            
+            // Handle background for JPEG (transparency turns black otherwise)
+            if (fmt === 'image/jpeg') { 
+              ctx.fillStyle = '#fff'; 
+              ctx.fillRect(0, 0, canvas.width, canvas.height); 
+            }
+            
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+            
+            const blob = await new Promise(r => canvas.toBlob(r, fmt, 0.92));
+            window.download(blob, `${base}-page-${i}.${ext}`, fmt);
+            
+            // Generate small preview thumbnail
+            const thumb = document.createElement('img');
+            thumb.src = canvas.toDataURL(fmt, 0.6);
+            thumb.style.cssText = 'width:100%;border:1px solid var(--line);border-radius:8px;';
+            preview.appendChild(thumb);
+            
+            // Throttle to prevent browser lag on large PDFs
+            await new Promise(r => setTimeout(r, 80));
+          }
+          
+          result.classList.add('show');
+          result.innerHTML = `<strong>Done.</strong> Exported ${pdf.numPages} image(s) at ${scale}× scale.`;
+          window.toast('Converted');
+          
+        } catch (e) {
+          result.classList.add('show', 'error');
+          result.textContent = 'Failed: ' + (e.message || e);
+        } finally { 
+          runBtn.disabled = false; 
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

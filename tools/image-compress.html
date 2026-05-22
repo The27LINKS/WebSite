@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Compress — Optimize JPG, PNG, WebP | The 27 Links</title>
+  <meta name="description" content="Compress JPG, PNG and WebP images with adjustable quality. Runs entirely in your browser." />
+  <link rel="canonical" href="https://the27links.in/tools/image-compress.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="image-compress-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> / <a href="../tools.html">Tools</a> / Image Compress
+      </div>
+      <h1>Image Compress</h1>
+      <p>Shrink image file sizes for the web with a quality slider you control.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload an image</h2>
+          <label class="dropzone" id="dropzone" data-testid="image-compress-dropzone">
+            <strong>Drag &amp; drop an image</strong>
+            <span>or click to select · JPG, PNG, WebP</span>
+            <input type="file" accept="image/*" />
+          </label>
+          <div class="file-list" id="file-list"></div>
+
+          <div class="form-row" style="margin-top: 18px;">
+            <label for="quality">Quality: <span id="qval">75</span>%</label>
+            <input type="range" id="quality" min="10" max="100" value="75" data-testid="image-compress-quality" style="width:100%;" />
+          </div>
+          
+          <div class="form-row">
+            <label>Output format</label>
+            <select id="format" data-testid="image-compress-format">
+              <option value="same">Same as original</option>
+              <option value="image/jpeg">JPG</option>
+              <option value="image/webp">WebP</option>
+              <option value="image/png">PNG (lossless)</option>
+            </select>
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="run-btn" disabled data-testid="image-compress-run">Compress &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn">Reset</button>
+          </div>
+          
+          <div class="result-box" id="result" data-testid="image-compress-result"></div>
+          <div class="image-preview" id="preview"></div>
+        </div>
+        
+        <aside class="tool-sidebar">
+          <div class="ad-slot">Advertisement<br/>300 × 600</div>
+          <div class="sidebar-card">
+            <h4>Tips</h4>
+            <p>WebP typically gives 25–35% smaller files than JPG at the same visual quality. Quality 75 is a good starting point.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="image-resize.html">Image Resize</a></li>
+              <li><a href="image-convert.html">Image Convert</a></li>
+            </ul>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script>
+    (function () {
+      let file = null, img = null;
+      
+      const dz = document.getElementById('dropzone');
+      const listEl = document.getElementById('file-list');
+      const runBtn = document.getElementById('run-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const result = document.getElementById('result');
+      const preview = document.getElementById('preview');
+      const q = document.getElementById('quality');
+      const qv = document.getElementById('qval');
+      const fmt = document.getElementById('format');
+      
+      // Update quality label dynamically
+      q.addEventListener('input', () => qv.textContent = q.value);
+
+      // Initialize the dropzone using the helper from main.js
+      window.makeDropzone(dz, async fs => {
+        file = fs[0];
+        
+        // Load the image into a standard HTML Image object
+        img = await new Promise((res, rej) => { 
+          const i = new Image(); 
+          i.onload = () => res(i); 
+          i.onerror = rej; 
+          i.src = URL.createObjectURL(file); 
+        });
+        
+        // Render the file list UI
+        listEl.innerHTML = `
+          <div class="file-item">
+            <span class="fi-name">${file.name}</span>
+            <span class="fi-size">${window.fmtBytes(file.size)} · ${img.naturalWidth}×${img.naturalHeight}</span>
+            <button data-remove>✕</button>
+          </div>
+        `;
+        
+        // Handle file removal
+        listEl.querySelector('[data-remove]').addEventListener('click', () => { 
+          file = null; 
+          img = null; 
+          listEl.innerHTML = ''; 
+          runBtn.disabled = true; 
+          preview.innerHTML = ''; 
+        });
+        
+        runBtn.disabled = false;
+        
+        // Show original image preview
+        preview.innerHTML = `
+          <figure>
+            <figcaption>Original · ${window.fmtBytes(file.size)}</figcaption>
+            <img src="${img.src}" />
+          </figure>
+        `;
+      }, { accept: 'image/*', multiple: false });
+
+      // Handle Reset button
+      clearBtn.addEventListener('click', () => { 
+        file = null; 
+        img = null; 
+        listEl.innerHTML = ''; 
+        runBtn.disabled = true; 
+        preview.innerHTML = ''; 
+        result.classList.remove('show'); 
+      });
+
+      // Handle Compression logic
+      runBtn.addEventListener('click', async () => {
+        if (!file || !img) return;
+        
+        runBtn.disabled = true; 
+        result.classList.remove('show', 'error');
+        
+        try {
+          const mime = fmt.value === 'same' ? (file.type || 'image/jpeg') : fmt.value;
+          
+          // Setup Canvas
+          const cv = document.createElement('canvas'); 
+          cv.width = img.naturalWidth; 
+          cv.height = img.naturalHeight;
+          const ctx = cv.getContext('2d');
+          
+          // If converting to JPEG, ensure background is white (removes transparent pixels)
+          if (mime === 'image/jpeg') { 
+            ctx.fillStyle = '#fff'; 
+            ctx.fillRect(0, 0, cv.width, cv.height); 
+          }
+          
+          ctx.drawImage(img, 0, 0);
+          
+          // Export the compressed blob
+          const blob = await new Promise(r => cv.toBlob(r, mime, (+q.value) / 100));
+          const ext = mime.split('/')[1].replace('jpeg', 'jpg');
+          const base = file.name.replace(/\.[^.]+$/, '');
+          
+          // Trigger download
+          window.download(blob, `${base}-compressed.${ext}`, mime);
+          
+          // Calculate savings
+          const saved = Math.max(0, file.size - blob.size);
+          const pct = file.size ? Math.round((saved / file.size) * 100) : 0;
+          
+          // Show results
+          result.classList.add('show'); 
+          result.innerHTML = `<strong>Done.</strong> ${window.fmtBytes(file.size)} → ${window.fmtBytes(blob.size)} (saved ${pct}%).`;
+          
+          // Show side-by-side preview
+          const url = URL.createObjectURL(blob);
+          preview.innerHTML = `
+            <figure>
+              <figcaption>Original · ${window.fmtBytes(file.size)}</figcaption>
+              <img src="${img.src}" />
+            </figure>
+            <figure>
+              <figcaption>Compressed · ${window.fmtBytes(blob.size)}</figcaption>
+              <img src="${url}" />
+            </figure>
+          `;
+          
+          window.toast('Compressed');
+        } catch (e) {
+          result.classList.add('show', 'error'); 
+          result.textContent = 'Failed: ' + (e.message || e);
+        } finally { 
+          runBtn.disabled = false; 
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meta Tag Generator — SEO &amp; Open Graph | The 27 Links</title>
+  <meta name="description" content="Generate HTML meta tags for SEO, Open Graph (Facebook) and Twitter cards with a live preview." />
+  <link rel="canonical" href="https://the27links.in/tools/meta-tag-generator.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="meta-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <h1>Meta Tag Generator</h1>
+      <p>Fill in the basics and paste clean meta tags straight into your <code>&lt;head&gt;</code>.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Page details</h2>
+          
+          <div class="form-row-2">
+            <div class="form-row">
+              <label>Title (max 60)</label>
+              <input id="m-title" type="text" maxlength="70" placeholder="Awesome Page Title" data-testid="meta-title" />
+              <div class="help"><span id="title-count">0</span>/60</div>
+            </div>
+            <div class="form-row">
+              <label>Site name</label>
+              <input id="m-site" type="text" placeholder="The 27 Links" />
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <label>Description (max 160)</label>
+            <textarea id="m-desc" maxlength="180" style="min-height: 96px;" placeholder="Short, compelling summary…" data-testid="meta-desc"></textarea>
+            <div class="help"><span id="desc-count">0</span>/160</div>
+          </div>
+          
+          <div class="form-row-2">
+            <div class="form-row">
+              <label>Canonical URL</label>
+              <input id="m-url" type="text" placeholder="https://example.com/page" />
+            </div>
+            <div class="form-row">
+              <label>Image URL (og:image)</label>
+              <input id="m-image" type="text" placeholder="https://example.com/cover.jpg" />
+            </div>
+          </div>
+          
+          <div class="form-row-2">
+            <div class="form-row">
+              <label>Author</label>
+              <input id="m-author" type="text" />
+            </div>
+            <div class="form-row">
+              <label>Twitter handle</label>
+              <input id="m-tw" type="text" placeholder="@handle" />
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <label>Keywords (comma-separated)</label>
+            <input id="m-keys" type="text" />
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="gen-btn" data-testid="meta-generate">Generate tags</button>
+            <button class="btn btn-ghost" id="copy-btn" data-testid="meta-copy">Copy HTML</button>
+          </div>
+
+          <h3 style="margin-top: 32px; font-family: var(--font-display); font-weight: 500;">Output</h3>
+          <div class="output-preview" id="out" data-testid="meta-output"><em>Fill the fields and click "Generate tags".</em></div>
+
+          <h3 style="margin-top: 32px; font-family: var(--font-display); font-weight: 500;">Google preview</h3>
+          <div style="border: 1px solid var(--line); border-radius: 12px; padding: 18px; background: var(--bg-alt);">
+            <div id="p-url" style="font-size: 13px; color: #006621;">https://example.com</div>
+            <div id="p-title" style="font-size: 20px; color: #1a0dab; margin: 4px 0;">Awesome Page Title</div>
+            <div id="p-desc" style="font-size: 14px; color: var(--ink-soft);">Short summary appears here…</div>
+          </div>
+        </div>
+        
+        <aside class="tool-sidebar">
+          <a href="https://the27links.in" rel="noopener noreferrer" class="ad-slot active-ad" data-testid="ad-slot">
+            <img src="../assets/gif/Animation.gif" alt="Advertisement" />
+         </a>
+          <div class="sidebar-card">
+            <h4>SEO tip</h4>
+            <p>Put your most important keyword in the first 30 characters of the title. Google truncates around 60.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="word-counter.html">Word Counter</a></li>
+              <li><a href="case-converter.html">Case Converter</a></li>
+            </ul>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script>
+    (function () {
+      const $ = id => document.getElementById(id);
+      
+      // Escape HTML to prevent injection when outputting tags
+      const esc = s => (s || '').replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
+      
+      // Character counters
+      $('m-title').addEventListener('input', () => $('title-count').textContent = $('m-title').value.length);
+      $('m-desc').addEventListener('input', () => $('desc-count').textContent = $('m-desc').value.length);
+
+      // Builder logic
+      function build() {
+        const t = $('m-title').value;
+        const d = $('m-desc').value;
+        const u = $('m-url').value;
+        const im = $('m-image').value;
+        const site = $('m-site').value;
+        const au = $('m-author').value;
+        const tw = $('m-tw').value;
+        const kw = $('m-keys').value;
+        
+        const lines = [];
+        
+        if (t) lines.push(`<title>${esc(t)}</title>`);
+        if (d) lines.push(`<meta name="description" content="${esc(d)}" />`);
+        if (kw) lines.push(`<meta name="keywords" content="${esc(kw)}" />`);
+        if (au) lines.push(`<meta name="author" content="${esc(au)}" />`);
+        if (u) lines.push(`<link rel="canonical" href="${esc(u)}" />`);
+        
+        if (t) lines.push(`<meta property="og:title" content="${esc(t)}" />`);
+        if (d) lines.push(`<meta property="og:description" content="${esc(d)}" />`);
+        if (site) lines.push(`<meta property="og:site_name" content="${esc(site)}" />`);
+        lines.push(`<meta property="og:type" content="website" />`);
+        if (u) lines.push(`<meta property="og:url" content="${esc(u)}" />`);
+        if (im) lines.push(`<meta property="og:image" content="${esc(im)}" />`);
+        
+        lines.push(`<meta name="twitter:card" content="summary_large_image" />`);
+        if (tw) lines.push(`<meta name="twitter:site" content="${esc(tw)}" />`);
+        if (t) lines.push(`<meta name="twitter:title" content="${esc(t)}" />`);
+        if (d) lines.push(`<meta name="twitter:description" content="${esc(d)}" />`);
+        if (im) lines.push(`<meta name="twitter:image" content="${esc(im)}" />`);
+        
+        return lines.join('\n');
+      }
+
+      // Live Google SERP preview updater
+      function preview() {
+        $('p-url').textContent = $('m-url').value || 'https://example.com';
+        $('p-title').textContent = $('m-title').value || 'Awesome Page Title';
+        $('p-desc').textContent = $('m-desc').value || 'Short summary appears here…';
+      }
+
+      $('gen-btn').addEventListener('click', () => { 
+        $('out').textContent = build(); 
+        preview(); 
+        window.toast('Generated'); 
+      });
+
+      $('copy-btn').addEventListener('click', async () => {
+        const html = build();
+        if (!html) { 
+          window.toast('Generate first', 'error'); 
+          return; 
+        }
+        await navigator.clipboard.writeText(html); 
+        window.toast('Copied HTML to clipboard');
+      });
+
+      // Bind live preview events
+      ['m-title', 'm-desc', 'm-url'].forEach(id => $(id).addEventListener('input', preview));
+      
+      // Init preview state
+      preview();
+    })();
+  </script>
+</body>
+</html>

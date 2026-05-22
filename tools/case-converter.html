@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Case Converter — Change text case online | The 27 Links</title>
+  <meta name="description" content="Convert text between UPPERCASE, lowercase, Title Case, Sentence case, camelCase, snake_case and kebab-case." />
+  <link rel="canonical" href="https://the27links.in/tools/case-converter.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="case-converter-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> &nbsp;/&nbsp; <a href="../tools.html">Tools</a> &nbsp;/&nbsp; Case Converter
+      </div>
+      <h1>Case Converter</h1>
+      <p>Transform text into any common letter case — instantly.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Your text</h2>
+          <div class="form-row">
+            <textarea id="txt" placeholder="Paste your text…" data-testid="case-input"></textarea>
+          </div>
+
+          <div style="display:flex; gap: 8px; flex-wrap: wrap;">
+            <button class="chip" data-case="upper" data-testid="case-upper">UPPERCASE</button>
+            <button class="chip" data-case="lower" data-testid="case-lower">lowercase</button>
+            <button class="chip" data-case="title" data-testid="case-title">Title Case</button>
+            <button class="chip" data-case="sentence" data-testid="case-sentence">Sentence case</button>
+            <button class="chip" data-case="camel" data-testid="case-camel">camelCase</button>
+            <button class="chip" data-case="pascal" data-testid="case-pascal">PascalCase</button>
+            <button class="chip" data-case="snake" data-testid="case-snake">snake_case</button>
+            <button class="chip" data-case="kebab" data-testid="case-kebab">kebab-case</button>
+            <button class="chip" data-case="alt">aLtErNaTiNg</button>
+            <button class="chip" data-case="invert">iNVERTED</button>
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-ghost" id="copy-btn" data-testid="case-copy">Copy result</button>
+            <button class="btn btn-ghost" id="clear-btn">Clear</button>
+          </div>
+          
+          <div class="output-preview" id="out" data-testid="case-output"></div>
+        </div>
+
+        <aside class="tool-sidebar">
+          <div class="ad-slot">Advertisement<br/>300 × 600</div>
+          <div class="sidebar-card">
+            <h4>Pro tip</h4>
+            <p>For file naming, use kebab-case for URLs and snake_case for variables.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="word-counter.html">Word Counter</a></li>
+              <li><a href="meta-tag-generator.html">Meta Tag Generator</a></li>
+            </ul>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script>
+    (function () {
+      const t = document.getElementById('txt');
+      const o = document.getElementById('out');
+      
+      const cases = {
+        upper: s => s.toUpperCase(),
+        lower: s => s.toLowerCase(),
+        title: s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase()),
+        sentence: s => s.toLowerCase().replace(/(^\s*|[.!?]\s+)(\w)/g, (_, a, b) => a + b.toUpperCase()),
+        camel: s => s.toLowerCase().replace(/[^a-z0-9]+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, c => c.toLowerCase()),
+        pascal: s => s.toLowerCase().replace(/[^a-z0-9]+(.)/g, (_, c) => c.toUpperCase()).replace(/^./, c => c.toUpperCase()),
+        snake: s => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''),
+        kebab: s => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        alt: s => s.split('').map((c, i) => i % 2 ? c.toLowerCase() : c.toUpperCase()).join(''),
+        invert: s => s.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join(''),
+      };
+      
+      document.querySelectorAll('[data-case]').forEach(b => {
+        b.addEventListener('click', () => {
+          if (!t.value) { 
+            window.toast('Paste some text first', 'error'); 
+            return; 
+          }
+          o.textContent = cases[b.dataset.case](t.value);
+        });
+      });
+      
+      document.getElementById('copy-btn').addEventListener('click', async () => { 
+        if (o.textContent) { 
+          await navigator.clipboard.writeText(o.textContent); 
+          window.toast('Copied'); 
+        } 
+      });
+      
+      document.getElementById('clear-btn').addEventListener('click', () => { 
+        t.value = ''; 
+        o.textContent = ''; 
+      });
+    })();
+  </script>
+</body>
+</html>

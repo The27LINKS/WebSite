@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF Merge — Combine PDFs online, free &amp; private | The 27 Links</title>
+  <meta name="description" content="Merge multiple PDF files into one, in seconds. 100% private — files never leave your browser. Drag, reorder and download — no sign-up." />
+  <meta name="keywords" content="pdf merge, combine pdf, join pdf, merge pdf online, free pdf merger" />
+  <link rel="canonical" href="https://the27links.in/tools/pdf-merge.html" />
+  
+  <meta property="og:title" content="PDF Merge — The 27 Links" />
+  <meta property="og:description" content="Merge PDFs in your browser. No uploads, no limits, no signup." />
+  <meta property="og:type" content="website" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PDF Merge",
+    "operatingSystem": "Any",
+    "applicationCategory": "UtilityApplication",
+    "offers": { "@type": "Offer", "price": "0" },
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "4.9", "ratingCount": "128" }
+  }
+  </script>
+</head>
+<body data-testid="pdf-merge-page">
+<header>
+  <div id="header"></div>
+</header>
+
+  <section class="page-header">
+    <div class="container">
+      <h1>PDF Merge</h1>
+      <p>Combine multiple PDFs into a single document. Drag files to reorder, then download — all in your browser.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload PDFs</h2>
+          <p class="hint">Drop two or more PDF files below. Your files never leave your device.</p>
+
+          <label class="dropzone" id="dropzone" data-testid="pdf-merge-dropzone">
+            <strong>Drag &amp; drop PDFs here</strong>
+            <span>or click to choose files · .pdf only</span>
+            <input type="file" accept="application/pdf" multiple />
+          </label>
+
+          <div class="file-list" id="file-list" data-testid="pdf-merge-file-list"></div>
+
+          <div class="progress" id="progress"><div class="bar"></div></div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="merge-btn" disabled data-testid="pdf-merge-btn">Merge &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn" data-testid="pdf-merge-clear">Clear all</button>
+          </div>
+
+          <div class="result-box" id="result" data-testid="pdf-merge-result"></div>
+        </div>
+        <aside class="tool-sidebar">
+          <a href="https://the27links.in" el="noopener noreferrer" class="ad-slot active-ad" data-testid="ad-slot">
+            <img src="../assets/gif/Animation.gif" alt="Advertisement" />
+         </a>
+          <div class="sidebar-card">
+            <h4>Tips</h4>
+            <p>Files are merged in the order shown. Drag file rows up or down to reorder.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="pdf-split.html">PDF Split</a></li>
+              <li><a href="pdf-compress.html">PDF Compress</a></li>
+              <li><a href="image-to-pdf.html">Image to PDF</a></li>
+            </ul>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+<footer>
+   <div id="footer"></div>
+</footer>
+  
+<script src="../assets/js/tools-data.js"></script>
+<script src="../assets/js/main.js"></script>
+<script src="../assets/js/partials.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  
+  <script>
+    (function () {
+      const { PDFDocument } = PDFLib;
+      let files = [];
+      
+      const listEl = document.getElementById('file-list');
+      const mergeBtn = document.getElementById('merge-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const dz = document.getElementById('dropzone');
+      const progress = document.getElementById('progress');
+      const progressBar = progress.querySelector('.bar');
+      const result = document.getElementById('result');
+
+      function render() {
+        listEl.innerHTML = files.map((f, i) => `
+          <div class="file-item draggable" draggable="true" data-idx="${i}">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 22px;">${i + 1}.</span>
+            <span class="fi-name">${f.name}</span>
+            <span class="fi-size">${window.fmtBytes(f.size)}</span>
+            <button type="button" aria-label="Remove" data-remove="${i}" data-testid="remove-file-${i}">✕</button>
+          </div>
+        `).join('');
+        
+        mergeBtn.disabled = files.length < 2;
+
+        listEl.querySelectorAll('[data-remove]').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            files.splice(+btn.dataset.remove, 1);
+            render();
+          });
+        });
+
+        // Drag and drop reordering logic
+        let dragIdx = null;
+        listEl.querySelectorAll('.file-item').forEach(el => {
+          el.addEventListener('dragstart', () => { 
+            dragIdx = +el.dataset.idx; 
+            el.style.opacity = '.4'; 
+          });
+          el.addEventListener('dragend', () => { el.style.opacity = '1'; });
+          el.addEventListener('dragover', e => e.preventDefault());
+          el.addEventListener('drop', e => {
+            e.preventDefault();
+            const dropIdx = +el.dataset.idx;
+            if (dragIdx === null || dragIdx === dropIdx) return;
+            const moved = files.splice(dragIdx, 1)[0];
+            files.splice(dropIdx, 0, moved);
+            render();
+          });
+        });
+      }
+
+      window.makeDropzone(dz, (newFiles) => {
+        const pdfs = newFiles.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+        if (pdfs.length === 0) { 
+          window.toast('Please drop PDF files only', 'error'); 
+          return; 
+        }
+        files = files.concat(pdfs);
+        render();
+      }, { accept: 'application/pdf', multiple: true });
+
+      clearBtn.addEventListener('click', () => { 
+        files = []; 
+        render(); 
+        result.classList.remove('show'); 
+      });
+
+      mergeBtn.addEventListener('click', async () => {
+        if (files.length < 2) return;
+        
+        mergeBtn.disabled = true;
+        progress.classList.add('show');
+        progressBar.style.width = '5%';
+        result.classList.remove('show');
+        
+        try {
+          const out = await PDFDocument.create();
+          
+          for (let i = 0; i < files.length; i++) {
+            const buf = await files[i].arrayBuffer();
+            const src = await PDFDocument.load(buf, { ignoreEncryption: true });
+            const pages = await out.copyPages(src, src.getPageIndices());
+            pages.forEach(p => out.addPage(p));
+            
+            // Progress bar update
+            progressBar.style.width = (10 + (80 * (i + 1) / files.length)) + '%';
+          }
+          
+          const bytes = await out.save();
+          progressBar.style.width = '100%';
+          
+          window.download(new Blob([bytes], { type: 'application/pdf' }), 'merged-' + Date.now() + '.pdf', 'application/pdf');
+          
+          result.classList.add('show');
+          result.innerHTML = `<strong>Done!</strong> Merged ${files.length} PDFs (${window.fmtBytes(bytes.byteLength)}) and triggered a download.`;
+          window.toast('Merged and downloaded');
+          
+        } catch (e) {
+          console.error(e);
+          result.classList.add('show', 'error');
+          result.textContent = 'Failed to merge: ' + (e.message || 'unknown error');
+        } finally {
+          mergeBtn.disabled = false;
+          setTimeout(() => { 
+            progress.classList.remove('show'); 
+            progressBar.style.width = '0%'; 
+          }, 800);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

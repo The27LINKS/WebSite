@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Resize — Scale or resize images online | The 27 Links</title>
+  <meta name="description" content="Resize JPG, PNG and WebP images to exact dimensions or by percentage — private, fast and free." />
+  <link rel="canonical" href="https://the27links.in/tools/image-resize.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="image-resize-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> &nbsp;/&nbsp; <a href="../tools.html">Tools</a> &nbsp;/&nbsp; Image Resize
+      </div>
+      <h1>Image Resize</h1>
+      <p>Resize an image by exact pixel dimensions or by percentage.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload an image</h2>
+          <label class="dropzone" id="dropzone" data-testid="image-resize-dropzone">
+            <strong>Drag &amp; drop an image</strong>
+            <span>or click to select · JPG, PNG, WebP</span>
+            <input type="file" accept="image/*" />
+          </label>
+          <div class="file-list" id="file-list"></div>
+
+          <div class="form-row-2" style="margin-top: 18px;">
+            <div class="form-row">
+              <label>Mode</label>
+              <select id="mode">
+                <option value="pixels">Exact dimensions</option>
+                <option value="percent">By percentage</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label><input type="checkbox" id="lock" checked /> Keep aspect ratio</label>
+            </div>
+          </div>
+          
+          <div class="form-row-2" id="dim-row">
+            <div class="form-row"><label>Width</label><input type="number" id="w" min="1" data-testid="image-resize-w" /></div>
+            <div class="form-row"><label>Height</label><input type="number" id="h" min="1" data-testid="image-resize-h" /></div>
+          </div>
+          
+          <div class="form-row" id="pct-row" style="display:none;">
+            <label>Percentage</label>
+            <input type="number" id="pct" value="50" min="1" max="400" />
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="run-btn" disabled data-testid="image-resize-run">Resize &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn">Reset</button>
+          </div>
+          <div class="result-box" id="result" data-testid="image-resize-result"></div>
+          <div class="image-preview" id="preview"></div>
+        </div>
+        
+        <aside class="tool-sidebar">
+          <div class="ad-slot">Advertisement<br/>300 × 600</div>
+          <div class="sidebar-card">
+            <h4>Tips</h4>
+            <p>Lock aspect ratio to avoid stretching. For web use, 1200–1600 px wide is usually enough.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="image-compress.html">Image Compress</a></li>
+              <li><a href="image-convert.html">Image Convert</a></li>
+            </ul>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script>
+    (function () {
+      let file = null, origImg = null;
+      
+      const dz = document.getElementById('dropzone');
+      const listEl = document.getElementById('file-list');
+      const runBtn = document.getElementById('run-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const result = document.getElementById('result');
+      const preview = document.getElementById('preview');
+      const mode = document.getElementById('mode');
+      const lock = document.getElementById('lock');
+      const wI = document.getElementById('w');
+      const hI = document.getElementById('h');
+      const pct = document.getElementById('pct');
+      const dimRow = document.getElementById('dim-row');
+      const pctRow = document.getElementById('pct-row');
+
+      // Toggle UI based on Resize Mode
+      mode.addEventListener('change', () => { 
+        dimRow.style.display = mode.value === 'pixels' ? '' : 'none'; 
+        pctRow.style.display = mode.value === 'percent' ? '' : 'none'; 
+      });
+
+      function loadImage(f) {
+        return new Promise((res, rej) => {
+          const img = new Image();
+          img.onload = () => res(img);
+          img.onerror = rej;
+          img.src = URL.createObjectURL(f);
+        });
+      }
+      
+      // Handle file drop/upload
+      async function onFile(fs) {
+        file = fs[0];
+        origImg = await loadImage(file);
+        
+        // Auto-fill width and height with original dimensions
+        wI.value = origImg.naturalWidth; 
+        hI.value = origImg.naturalHeight;
+        
+        // Update UI
+        listEl.innerHTML = `
+          <div class="file-item">
+            <span class="fi-name">${file.name}</span>
+            <span class="fi-size">${window.fmtBytes(file.size)} · ${origImg.naturalWidth}×${origImg.naturalHeight}</span>
+            <button data-remove>✕</button>
+          </div>
+        `;
+        
+        listEl.querySelector('[data-remove]').addEventListener('click', () => { 
+          file = null; 
+          origImg = null; 
+          listEl.innerHTML = ''; 
+          runBtn.disabled = true; 
+          preview.innerHTML = ''; 
+        });
+        
+        runBtn.disabled = false;
+        preview.innerHTML = `
+          <figure>
+            <figcaption>Original</figcaption>
+            <img src="${origImg.src}" />
+          </figure>
+        `;
+      }
+      window.makeDropzone(dz, onFile, { accept: 'image/*', multiple: false });
+
+      // Handle Aspect Ratio Locking
+      wI.addEventListener('input', () => { 
+        if (lock.checked && origImg) {
+          hI.value = Math.round(+wI.value * origImg.naturalHeight / origImg.naturalWidth); 
+        }
+      });
+      hI.addEventListener('input', () => { 
+        if (lock.checked && origImg) {
+          wI.value = Math.round(+hI.value * origImg.naturalWidth / origImg.naturalHeight); 
+        }
+      });
+      
+      // Handle Reset
+      clearBtn.addEventListener('click', () => { 
+        file = null; 
+        origImg = null; 
+        listEl.innerHTML = ''; 
+        runBtn.disabled = true; 
+        preview.innerHTML = ''; 
+        result.classList.remove('show'); 
+      });
+
+      // Handle Resize and Download
+      runBtn.addEventListener('click', async () => {
+        if (!file || !origImg) return;
+        runBtn.disabled = true; 
+        result.classList.remove('show', 'error');
+        
+        try {
+          let targetW, targetH;
+          
+          if (mode.value === 'pixels') { 
+            targetW = +wI.value; 
+            targetH = +hI.value; 
+          } else { 
+            const p = +pct.value / 100; 
+            targetW = Math.round(origImg.naturalWidth * p); 
+            targetH = Math.round(origImg.naturalHeight * p); 
+          }
+          
+          // Setup Canvas
+          const cv = document.createElement('canvas'); 
+          cv.width = targetW; 
+          cv.height = targetH;
+          const ctx = cv.getContext('2d'); 
+          ctx.imageSmoothingEnabled = true; 
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(origImg, 0, 0, targetW, targetH);
+          
+          // Determine output format
+          const mime = file.type && /png|webp/.test(file.type) ? file.type : 'image/jpeg';
+          const ext = mime.split('/')[1].replace('jpeg', 'jpg');
+          
+          // Export Blob
+          const blob = await new Promise(r => cv.toBlob(r, mime, 0.92));
+          const base = file.name.replace(/\.[^.]+$/, '');
+          
+          // Download
+          window.download(blob, `${base}-${targetW}x${targetH}.${ext}`, mime);
+          
+          // Update Preview and Result
+          preview.innerHTML += `
+            <figure>
+              <figcaption>Resized ${targetW}×${targetH}</figcaption>
+              <img src="${cv.toDataURL(mime, 0.6)}" />
+            </figure>
+          `;
+          result.classList.add('show'); 
+          result.innerHTML = `<strong>Done.</strong> Resized to ${targetW}×${targetH} (${window.fmtBytes(blob.size)}).`;
+          window.toast('Resized and downloaded');
+          
+        } catch (e) {
+          result.classList.add('show', 'error'); 
+          result.textContent = 'Failed: ' + (e.message || e);
+        } finally { 
+          runBtn.disabled = false; 
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

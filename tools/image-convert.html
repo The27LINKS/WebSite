@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Convert — JPG, PNG, WebP converter | The 27 Links</title>
+  <meta name="description" content="Convert images between JPG, PNG and WebP formats in your browser." />
+  <link rel="canonical" href="https://the27links.in/tools/image-convert.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="image-convert-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> &nbsp;/&nbsp; <a href="../tools.html">Tools</a> &nbsp;/&nbsp; Image Convert
+      </div>
+      <h1>Image Convert</h1>
+      <p>Instantly switch between JPG, PNG and WebP. No uploads, no waiting.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload image(s)</h2>
+          <label class="dropzone" id="dropzone" data-testid="image-convert-dropzone">
+            <strong>Drop images here</strong>
+            <span>or click to select · multiple allowed</span>
+            <input type="file" accept="image/*" multiple />
+          </label>
+          <div class="file-list" id="file-list"></div>
+
+          <div class="form-row-2" style="margin-top: 18px;">
+            <div class="form-row">
+              <label>Target format</label>
+              <select id="format" data-testid="image-convert-format">
+                <option value="image/jpeg">JPG</option>
+                <option value="image/png">PNG</option>
+                <option value="image/webp">WebP</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>Quality (JPG/WebP)</label>
+              <input type="range" id="quality" min="30" max="100" value="90" />
+            </div>
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="run-btn" disabled data-testid="image-convert-run">Convert &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn">Reset</button>
+          </div>
+          <div class="result-box" id="result" data-testid="image-convert-result"></div>
+        </div>
+
+        <aside class="tool-sidebar">
+          <div class="ad-slot">Advertisement<br/>300 × 600</div>
+          <div class="sidebar-card">
+            <h4>Tips</h4>
+            <p>Use WebP for the web, PNG for transparency, JPG for photos.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="image-compress.html">Image Compress</a></li>
+              <li><a href="image-resize.html">Image Resize</a></li>
+            </ul>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script>
+    (function () {
+      let files = [];
+      const dz = document.getElementById('dropzone');
+      const listEl = document.getElementById('file-list');
+      const runBtn = document.getElementById('run-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const result = document.getElementById('result');
+      const fmt = document.getElementById('format');
+      const quality = document.getElementById('quality');
+
+      function render() {
+        listEl.innerHTML = files.map((f, i) => `
+          <div class="file-item">
+            <span class="fi-name">${f.name}</span>
+            <span class="fi-size">${window.fmtBytes(f.size)}</span>
+            <button data-remove="${i}">✕</button>
+          </div>
+        `).join('');
+        
+        runBtn.disabled = files.length === 0;
+        
+        listEl.querySelectorAll('[data-remove]').forEach(b => {
+          b.addEventListener('click', () => { 
+            files.splice(+b.dataset.remove, 1); 
+            render(); 
+          });
+        });
+      }
+
+      window.makeDropzone(dz, fs => { 
+        files = files.concat(fs.filter(f => f.type.startsWith('image/'))); 
+        render(); 
+      }, { accept: 'image/*', multiple: true });
+
+      clearBtn.addEventListener('click', () => { 
+        files = []; 
+        render(); 
+        result.classList.remove('show'); 
+      });
+
+      async function convert(file) {
+        const img = await new Promise((res, rej) => { 
+          const i = new Image(); 
+          i.onload = () => res(i); 
+          i.onerror = rej; 
+          i.src = URL.createObjectURL(file); 
+        });
+        
+        const cv = document.createElement('canvas'); 
+        cv.width = img.naturalWidth; 
+        cv.height = img.naturalHeight;
+        const ctx = cv.getContext('2d');
+        
+        // Fill white background for JPEGs to avoid black backgrounds on transparent PNGs
+        if (fmt.value === 'image/jpeg') { 
+          ctx.fillStyle = '#fff'; 
+          ctx.fillRect(0, 0, cv.width, cv.height); 
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        return new Promise(r => cv.toBlob(r, fmt.value, (+quality.value) / 100));
+      }
+
+      runBtn.addEventListener('click', async () => {
+        if (!files.length) return;
+        runBtn.disabled = true; 
+        result.classList.remove('show', 'error');
+        
+        try {
+          const ext = fmt.value.split('/')[1].replace('jpeg', 'jpg');
+          for (const f of files) {
+            const blob = await convert(f);
+            const base = f.name.replace(/\.[^.]+$/, '');
+            window.download(blob, `${base}.${ext}`, fmt.value);
+            // Brief pause to allow the browser to process multiple downloads
+            await new Promise(r => setTimeout(r, 100));
+          }
+          result.classList.add('show'); 
+          result.innerHTML = `<strong>Done.</strong> Converted ${files.length} file(s) to ${ext.toUpperCase()}.`;
+          window.toast('Converted');
+        } catch (e) {
+          result.classList.add('show', 'error'); 
+          result.textContent = 'Failed: ' + (e.message || e);
+        } finally { 
+          runBtn.disabled = false; 
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

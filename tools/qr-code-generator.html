@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Code Generator — Free online QR maker | The 27 Links</title>
+  <meta name="description" content="Generate QR codes for URLs, text, Wi-Fi credentials and contact cards. Download as PNG — everything runs in your browser." />
+  <link rel="canonical" href="https://the27links.in/tools/qr-code-generator.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+
+  <style>
+    /* Prevent the canvas from overflowing on mobile */
+    #qr-output canvas, #qr-output img { 
+      margin: 24px auto 0; 
+      display: block; 
+      border: 1px solid var(--line); 
+      border-radius: 12px; 
+      padding: 16px; 
+      background: #fff; 
+      max-width: 100%; 
+      height: auto !important; 
+      box-sizing: border-box; 
+    }
+
+    #qr-output { 
+      text-align: center; 
+    }
+
+    /* Loading Spinner */
+    .qr-loader {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border: 4px solid var(--line);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: qr-spin 0.8s linear infinite;
+      margin: 40px auto 20px;
+    }
+
+    @keyframes qr-spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body data-testid="qr-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <h1>QR Code Generator</h1>
+      <p>Type your content, tweak the style, download a clean PNG.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Content</h2>
+          <div class="form-row">
+            <label>Type</label>
+            <select id="type" data-testid="qr-type">
+              <option value="text">Plain text / URL</option>
+              <option value="wifi">Wi-Fi network</option>
+              <option value="vcard">Contact card (vCard)</option>
+            </select>
+          </div>
+
+          <div id="f-text">
+            <div class="form-row">
+              <label>Text or URL</label>
+              <input type="text" id="text" placeholder="https://the27links.in" data-testid="qr-text" value="https://the27links.in" />
+            </div>
+          </div>
+
+          <div id="f-wifi" style="display:none;">
+            <div class="form-row-2">
+              <div class="form-row"><label>Network (SSID)</label><input type="text" id="wifi-ssid" /></div>
+              <div class="form-row"><label>Password</label><input type="text" id="wifi-pass" /></div>
+            </div>
+            <div class="form-row">
+              <label>Security</label>
+              <select id="wifi-auth">
+                <option value="WPA">WPA/WPA2</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">None</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="f-vcard" style="display:none;">
+            <div class="form-row-2">
+              <div class="form-row"><label>Name</label><input id="vc-name" type="text" /></div>
+              <div class="form-row"><label>Phone</label><input id="vc-phone" type="text" /></div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-row"><label>Email</label><input id="vc-email" type="email" /></div>
+              <div class="form-row"><label>Company</label><input id="vc-org" type="text" /></div>
+            </div>
+            <div class="form-row"><label>Website</label><input id="vc-url" type="text" /></div>
+          </div>
+
+          <div class="form-row-2" style="margin-top: 12px;">
+            <div class="form-row"><label>Size (px)</label><input type="number" id="size" value="400" min="128" max="1024" /></div>
+            <div class="form-row"><label>Foreground color</label><input type="color" id="fg" value="#0f0f0f" style="height: 44px;" /></div>
+          </div>
+
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="gen-btn" data-testid="qr-generate">Generate</button>
+            <button class="btn btn-ghost" id="dl-btn" disabled data-testid="qr-download">Download PNG</button>
+          </div>
+
+          <div id="qr-output" data-testid="qr-output"></div>
+        </div>
+
+        <aside class="tool-sidebar">
+          <a href="https://the27links.in" rel="noopener noreferrer" class="ad-slot active-ad" data-testid="ad-slot">
+            <img src="../assets/gif/Animation.gif" alt="Advertisement" />
+         </a>
+          <div class="sidebar-card">
+            <h4>Pro tip</h4>
+            <p>Keep foreground dark on a white background for reliable scanning. Test your code with your phone camera before printing.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="meta-tag-generator.html">Meta Tag Generator</a></li>
+              <li><a href="image-convert.html">Image Convert</a></li>
+            </ul>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  
+  <script>
+    (function () {
+      const typeSel = document.getElementById('type');
+      
+      // UI Tab Switching
+      typeSel.addEventListener('change', () => {
+        document.getElementById('f-text').style.display = typeSel.value === 'text' ? '' : 'none';
+        document.getElementById('f-wifi').style.display = typeSel.value === 'wifi' ? '' : 'none';
+        document.getElementById('f-vcard').style.display = typeSel.value === 'vcard' ? '' : 'none';
+      });
+
+      // Construct the specialized QR data string based on selected tab
+      function buildPayload() {
+        const type = typeSel.value;
+        
+        if (type === 'text') {
+          return document.getElementById('text').value.trim();
+        }
+        if (type === 'wifi') {
+          const s = document.getElementById('wifi-ssid').value.trim();
+          const p = document.getElementById('wifi-pass').value.trim();
+          const a = document.getElementById('wifi-auth').value;
+          if (!s) return null; // Prevent empty generation
+          return `WIFI:T:${a};S:${s};P:${p};;`;
+        }
+        if (type === 'vcard') {
+          const n = document.getElementById('vc-name').value.trim();
+          const p = document.getElementById('vc-phone').value.trim();
+          const e = document.getElementById('vc-email').value.trim();
+          const o = document.getElementById('vc-org').value.trim();
+          const u = document.getElementById('vc-url').value.trim();
+          if (!n) return null; // Prevent empty generation
+          return `BEGIN:VCARD\nVERSION:3.0\nFN:${n}\nTEL:${p}\nEMAIL:${e}\nORG:${o}\nURL:${u}\nEND:VCARD`;
+        }
+        return '';
+      }
+
+      let lastCanvas = null;
+
+      // Handle Generate Button Click
+      document.getElementById('gen-btn').addEventListener('click', () => {
+        
+        // Safety check for the QRious library
+        if (typeof QRious === 'undefined') {
+          if (window.toast) window.toast('QR library is still loading...', 'error');
+          return;
+        }
+
+        const payload = buildPayload();
+        
+        if (!payload) { 
+          if(window.toast) window.toast('Please fill in the required fields', 'error'); 
+          return; 
+        }
+        
+        const out = document.getElementById('qr-output');
+        const genBtn = document.getElementById('gen-btn');
+        const dlBtn = document.getElementById('dl-btn');
+
+        // 1. Lock the UI and show the loading spinner
+        genBtn.disabled = true;
+        dlBtn.disabled = true;
+        out.innerHTML = '<div class="qr-loader"></div>'; 
+        
+        // 2. Delay the generation slightly so the browser can draw the spinner
+        setTimeout(() => {
+          out.innerHTML = ''; // Clear the spinner
+          
+          const size = +document.getElementById('size').value || 400;
+          const fg = document.getElementById('fg').value;
+          const cv = document.createElement('canvas');
+
+          try {
+            // Initialize QRious
+            new QRious({
+              element: cv,
+              value: payload,
+              size: size,
+              foreground: fg,
+              background: '#ffffff',
+              level: 'H' // High error correction
+            });
+            
+            out.appendChild(cv);
+            lastCanvas = cv;
+            dlBtn.disabled = false; // Enable download button
+            
+          } catch (err) {
+            console.error(err);
+            if(window.toast) window.toast('Failed to generate QR', 'error');
+          } finally {
+            genBtn.disabled = false; // Unlock generate button
+          }
+        }, 400); 
+      });
+
+      // Handle Download Button Click
+      document.getElementById('dl-btn').addEventListener('click', () => {
+        if (!lastCanvas) return;
+        
+        const dataUrl = lastCanvas.toDataURL("image/png");
+        const link = document.createElement('a');
+        link.download = 'qr-code.png';
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+
+      // Auto-click on load
+      setTimeout(() => {
+        if (typeof QRious !== 'undefined') {
+          const btn = document.getElementById('gen-btn');
+          if (btn) btn.click();
+        }
+      }, 500);
+    })();
+  </script>
+</body>
+</html>

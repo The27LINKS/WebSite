@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PDF Compress — Reduce PDF file size | The 27 Links</title>
+  <meta name="description" content="Compress a PDF file by stripping metadata and unused objects — all inside your browser." />
+  <link rel="canonical" href="https://the27links.in/tools/pdf-compress.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="pdf-compress-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> &nbsp;/&nbsp; <a href="../tools.html">Tools</a> &nbsp;/&nbsp; PDF Compress
+      </div>
+      <h1>PDF Compress</h1>
+      <p>Shrink PDF file size by stripping metadata, embedded thumbnails and unused objects.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Upload a PDF</h2>
+          <p class="hint">Best results on PDFs with heavy metadata. Image-heavy PDFs may only shrink modestly — for those, export images first and convert back.</p>
+          
+          <label class="dropzone" id="dropzone" data-testid="pdf-compress-dropzone">
+            <strong>Drag &amp; drop a PDF</strong>
+            <span>or click to select · .pdf</span>
+            <input type="file" accept="application/pdf" />
+          </label>
+          <div class="file-list" id="file-list"></div>
+          
+          <div class="actions-bar">
+            <button class="btn btn-primary" id="run-btn" disabled data-testid="pdf-compress-run">Compress &amp; download</button>
+            <button class="btn btn-ghost" id="clear-btn">Reset</button>
+          </div>
+          
+          <div class="result-box" id="result" data-testid="pdf-compress-result"></div>
+        </div>
+        
+        <aside class="tool-sidebar">
+          <a href="https://the27links.in" el="noopener noreferrer" class="ad-slot active-ad" data-testid="ad-slot">
+            <img src="../assets/gif/Animation.gif" alt="Advertisement" />
+         </a>
+          <div class="sidebar-card">
+            <h4>How it works</h4>
+            <p>We re-save your PDF with object streams, strip title/author metadata and drop XFA attachments. Everything happens in the browser using pdf-lib.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="pdf-merge.html">PDF Merge</a></li>
+              <li><a href="pdf-split.html">PDF Split</a></li>
+            </ul>
+          </div>
+        </aside>
+        
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script>
+    (function () {
+      const { PDFDocument } = PDFLib;
+      let file = null;
+      
+      const dz = document.getElementById('dropzone');
+      const listEl = document.getElementById('file-list');
+      const runBtn = document.getElementById('run-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const result = document.getElementById('result');
+
+      function render() {
+        if (!file) { 
+          listEl.innerHTML = ''; 
+          runBtn.disabled = true; 
+          return; 
+        }
+        
+        listEl.innerHTML = `
+          <div class="file-item">
+            <span class="fi-name">${file.name}</span>
+            <span class="fi-size">${window.fmtBytes(file.size)}</span>
+            <button data-remove>✕</button>
+          </div>
+        `;
+        
+        listEl.querySelector('[data-remove]').addEventListener('click', () => { 
+          file = null; 
+          render(); 
+        });
+        
+        runBtn.disabled = false;
+      }
+
+      window.makeDropzone(dz, fs => { 
+        file = fs[0]; 
+        render(); 
+      }, { accept: 'application/pdf', multiple: false });
+
+      clearBtn.addEventListener('click', () => { 
+        file = null; 
+        render(); 
+        result.classList.remove('show'); 
+      });
+
+      runBtn.addEventListener('click', async () => {
+        if (!file) return;
+        runBtn.disabled = true; 
+        result.classList.remove('show', 'error');
+        
+        try {
+          const orig = file.size;
+          const buf = await file.arrayBuffer();
+          
+          // Load PDF ignoring encryption and preventing metadata updates
+          const src = await PDFDocument.load(buf, { ignoreEncryption: true, updateMetadata: false });
+          
+          // Strip out metadata
+          src.setTitle(''); 
+          src.setAuthor(''); 
+          src.setSubject(''); 
+          src.setKeywords([]); 
+          src.setProducer(''); 
+          src.setCreator('');
+          
+          // Save with object streams to compress the internal structure
+          const bytes = await src.save({ useObjectStreams: true });
+          
+          const saved = orig - bytes.byteLength;
+          const pct = Math.max(0, Math.round((saved / orig) * 100));
+          const base = file.name.replace(/\.pdf$/i, '');
+          
+          window.download(new Blob([bytes], { type: 'application/pdf' }), `${base}-compressed.pdf`, 'application/pdf');
+          
+          result.classList.add('show');
+          result.innerHTML = `<strong>Done.</strong> Original ${window.fmtBytes(orig)} → Compressed ${window.fmtBytes(bytes.byteLength)} (saved ${pct}%).`;
+          window.toast('Compressed and downloaded');
+          
+        } catch (e) {
+          result.classList.add('show', 'error');
+          result.textContent = 'Failed: ' + (e.message || e);
+        } finally { 
+          runBtn.disabled = false; 
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

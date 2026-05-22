@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Word Counter — Count words, characters &amp; read time | The 27 Links</title>
+  <meta name="description" content="Free online word counter with live stats: words, characters, sentences, paragraphs and estimated reading time." />
+  <link rel="canonical" href="https://the27links.in/tools/word-counter.html" />
+  
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body data-testid="word-counter-page">
+
+  <div data-include="../partials/header.html"></div>
+
+  <section class="page-header">
+    <div class="container">
+      <div class="breadcrumbs">
+        <a href="../index.html">Home</a> &nbsp;/&nbsp; <a href="../tools.html">Tools</a> &nbsp;/&nbsp; Word Counter
+      </div>
+      <h1>Word Counter</h1>
+      <p>Type or paste your text and watch the stats update live.</p>
+    </div>
+  </section>
+
+  <section class="tool-shell">
+    <div class="container">
+      <div class="layout">
+        
+        <div class="tool-panel">
+          <h2>Your text</h2>
+          <div class="form-row">
+            <textarea id="txt" placeholder="Start typing or paste your article…" data-testid="word-counter-input"></textarea>
+          </div>
+          <div class="actions-bar">
+            <button class="btn btn-ghost" id="clear-btn" data-testid="word-counter-clear">Clear</button>
+            <button class="btn btn-ghost" id="copy-btn" data-testid="word-counter-copy">Copy text</button>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-top: 24px;">
+            <div class="sidebar-card">
+              <h4>Words</h4>
+              <p id="words" style="font-family: var(--font-display); font-size: 36px; color: var(--accent); margin: 0;" data-testid="stat-words">0</p>
+            </div>
+            <div class="sidebar-card">
+              <h4>Characters</h4>
+              <p id="chars" style="font-family: var(--font-display); font-size: 36px; margin: 0;" data-testid="stat-chars">0</p>
+            </div>
+            <div class="sidebar-card">
+              <h4>No spaces</h4>
+              <p id="chars-ns" style="font-family: var(--font-display); font-size: 36px; margin: 0;" data-testid="stat-chars-ns">0</p>
+            </div>
+            <div class="sidebar-card">
+              <h4>Sentences</h4>
+              <p id="sent" style="font-family: var(--font-display); font-size: 36px; margin: 0;" data-testid="stat-sent">0</p>
+            </div>
+            <div class="sidebar-card">
+              <h4>Paragraphs</h4>
+              <p id="para" style="font-family: var(--font-display); font-size: 36px; margin: 0;" data-testid="stat-para">0</p>
+            </div>
+            <div class="sidebar-card">
+              <h4>Read time</h4>
+              <p id="rtime" style="font-family: var(--font-display); font-size: 36px; margin: 0;" data-testid="stat-rtime">0 min</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="tool-sidebar">
+          <div class="ad-slot">Advertisement<br/>300 × 600</div>
+          <div class="sidebar-card">
+            <h4>Why use it</h4>
+            <p>Great for essays, SEO meta descriptions, social posts and reading-time estimates. Reading speed assumed: 225 wpm.</p>
+          </div>
+          <div class="sidebar-card">
+            <h4>Related tools</h4>
+            <ul>
+              <li><a href="case-converter.html">Case Converter</a></li>
+              <li><a href="meta-tag-generator.html">Meta Tag Generator</a></li>
+            </ul>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <div data-include="../partials/footer.html"></div>
+
+  <script src="../assets/js/main.js"></script>
+  <script src="../assets/js/partials.js"></script>
+  <script>
+    (function () {
+      const t = document.getElementById('txt');
+      const W = document.getElementById('words'), 
+            C = document.getElementById('chars'), 
+            CN = document.getElementById('chars-ns'), 
+            S = document.getElementById('sent'), 
+            P = document.getElementById('para'), 
+            R = document.getElementById('rtime');
+
+      function update() {
+        const v = t.value;
+        const words = v.trim() ? v.trim().split(/\s+/).filter(Boolean).length : 0;
+        const chars = v.length;
+        const nospace = v.replace(/\s/g, '').length;
+        const sentences = v.trim() ? (v.match(/[.!?]+(\s|$)/g) || []).length || (v.trim() ? 1 : 0) : 0;
+        const paragraphs = v.trim() ? v.split(/\n{2,}/).filter(p => p.trim()).length : 0;
+        const rt = Math.ceil(words / 225);
+
+        W.textContent = words; 
+        C.textContent = chars; 
+        CN.textContent = nospace;
+        S.textContent = sentences; 
+        P.textContent = paragraphs;
+        R.textContent = rt + ' min';
+      }
+
+      t.addEventListener('input', update);
+      
+      document.getElementById('clear-btn').addEventListener('click', () => { 
+        t.value = ''; 
+        update(); 
+        t.focus(); 
+      });
+
+      document.getElementById('copy-btn').addEventListener('click', async () => { 
+        if (t.value) { 
+          await navigator.clipboard.writeText(t.value); 
+          window.toast('Copied to clipboard'); 
+        } 
+      });
+
+      // Run once on load to initialize zeroes
+      update();
+    })();
+  </script>
+</body>
+</html>
