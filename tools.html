@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tools | The 27LINKS</title>
+  <meta name="description" content="Browse every free online tool at The27LINKS — PDF merge/split/compress, image tools, SEO helpers, text utilities and more. All run privately in your browser." />
+  <link rel="canonical" href="https://the27links.in/tools.html" />
+  
+  <meta property="og:title" content="All Tools — The27LINKS" />
+  <meta property="og:description" content="12 free, privacy-first utilities for PDFs, images, text and SEO." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://the27links.in/tools.html" />
+  
+  <link rel="icon" type="png" href="/assets/img/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+
+</head>
+<body data-testid="tools-page">
+
+<header>
+  <div id="header"></div>
+</header
+
+<section class="page-header">
+  <div class="container">
+    <h1>The full catalogue.</h1>
+    <p>Twelve focused tools, no clutter. Filter by category or search by name, tag or keyword.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 48px;">
+  <div class="container">
+    <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: center; margin-bottom: 28px;">
+      <div class="search-wrap" style="flex: 1; min-width: 280px;" data-testid="tools-search-wrap">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="tool-search" type="text" placeholder="Search by name, tag or keyword…" data-testid="tool-search-input" aria-label="Search tools" />
+      </div>
+    </div>
+    <div class="tools-filter" data-testid="tools-filter">
+      <button class="chip active" data-filter="all" data-testid="filter-all">All</button>
+      <button class="chip" data-filter="PDF" data-testid="filter-pdf">PDF</button>
+      <button class="chip" data-filter="Image" data-testid="filter-image">Image</button>
+      <button class="chip" data-filter="Text" data-testid="filter-text">Text</button>
+      <button class="chip" data-filter="SEO" data-testid="filter-seo">SEO</button>
+      <button class="chip" data-filter="Utility" data-testid="filter-utility">Utility</button>
+    </div>
+    
+    <div id="tools-grid" class="tool-grid" data-testid="tools-grid"></div>
+  </div>
+</section>
+
+
+<footer>
+   <div id="footer"></div>
+</footer>
+  
+<script src="assets/js/main.js"></script>
+<script src="assets/js/partials.js"></script>
+<script src="assets/js/tools-data.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Re-bind header buttons since we removed inline onclicks
+    const themeBtn = document.querySelector('[data-testid="theme-toggle-btn"]');
+    const menuBtn = document.querySelector('[data-testid="menu-toggle-btn"]');
+    if (themeBtn && typeof window.toggleTheme === 'function') themeBtn.addEventListener('click', window.toggleTheme);
+    if (menuBtn && typeof window.toggleNav === 'function') menuBtn.addEventListener('click', window.toggleNav);
+
+    // Initialize the tools grid and the filter logic
+    if (typeof renderTools === 'function') renderTools('tools-grid');
+    if (typeof initToolFilter === 'function') initToolFilter();
+  });
+</script>
+</body>
+</html>
